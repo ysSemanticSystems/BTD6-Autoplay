@@ -3,7 +3,7 @@
 #
 # Desc: Plays through a level once a level is loaded.
 #
-# TODO: fix the click() and position methods to work on other people's screens
+# 
 #
 
 
