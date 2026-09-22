@@ -1,0 +1,35 @@
+{
+  "as_of": "2026-09-21",
+  "source": "https://www.bloonswiki.com/List_of_rounds_in_BTD6",
+  "scope": "Standard round sends. Hard starts at round 3, ends at round 80, and uses these same sends. Alternate Bloon Rounds and Apopalypse are a different list. Rounds past 80 are freeplay and are not part of the XP plan.",
+  "immunities": [
+    {"property": "camo", "missed_by": "an attack with no camo detection"},
+    {"property": "lead", "immune_to": "sharp"},
+    {"property": "purple", "immune_to": "energy, fire, and plasma"},
+    {"property": "black", "immune_to": "explosion"},
+    {"property": "zebra", "immune_to": "explosion and sharp"},
+    {"property": "white", "immune_to": "freeze"},
+    {"property": "frozen", "immune_to": "sharp while the bloon is frozen"}
+  ],
+  "gates": [
+    {"round": 24, "forces": "camo", "send": "Camo Green x1, Blue x20"},
+    {"round": 25, "forces": "purple", "send": "Regrow Yellow x25, Purple x10"},
+    {"round": 28, "forces": "lead", "send": "Lead x6"},
+    {"round": 33, "forces": "camo", "send": "Camo Red x20, Camo Yellow x13"},
+    {"round": 36, "forces": "camo", "send": "Pink rushes plus Camo Regrow Green"},
+    {"round": 37, "forces": "black, white, lead, zebra, camo", "send": "Black x25, White x25, Lead x15, Zebra x10, Camo White x7"},
+    {"round": 38, "forces": "ceramic", "send": "first Ceramics, with White, Pink, Lead, Zebra"},
+    {"round": 40, "forces": "moab", "send": "MOAB x1"},
+    {"round": 45, "forces": "camo purple, fortified lead", "send": "Rainbow x25, Camo Purple x10, Pink x180, Fortified Lead x4"},
+    {"round": 59, "forces": "camo lead", "send": "Ceramic x20, Camo Lead x50, Regrow Ceramic x10"},
+    {"round": 60, "forces": "bfb", "send": "BFB x1"},
+    {"round": 62, "forces": "purple", "send": "Purple x250, MOABs, Camo Regrow Rainbow x15"},
+    {"round": 63, "forces": "ceramic, lead", "send": "Lead x75, Ceramic x122"},
+    {"round": 64, "forces": "moab", "send": "MOAB x6, Fortified MOAB x3"},
+    {"round": 75, "forces": "bfb, fortified moab", "send": "BFBs, Leads, Fortified MOABs"},
+    {"round": 76, "forces": "regrow ceramic", "send": "Regrow Ceramic x60"},
+    {"round": 78, "forces": "camo ceramic, purple", "send": "Rainbow x150, Ceramic x75, BFB x1, Purple x80, Camo Ceramic x72"},
+    {"round": 80, "forces": "zomg", "send": "ZOMG x1"}
+  ],
+  "specialty": "A target tower that cannot hit one of these properties needs a specialty before that round. Prefer a hero, because hero cash takes no tower-XP share. If the hero cannot cover it, place the cheapest tower whose attack does, and stop upgrading it once the hole is closed. Sell it on the next round after the target's own upgrade covers the same property, so rounds 51-80 are not split. If the hole lasts through round 80, leave the specialty up: its cash share is the cost of finishing, and a death on round 63 pays much less than a finished Hard game."
+}

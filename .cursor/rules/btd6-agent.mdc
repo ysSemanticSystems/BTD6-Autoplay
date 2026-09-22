@@ -1,0 +1,34 @@
+---
+description: How to work on this BTD6 bot without undoing learned machine or game state
+alwaysApply: true
+---
+
+# BTD6 agent
+
+This bot plays Bloons TD 6 on one Mac mini (M4 Pro, 24 GB, display 1920x1080 at 1x). Steam build. Python is `.venv` (3.14). Tesseract is `/opt/homebrew/bin/tesseract`. LM Studio is `http://127.0.0.1:1234/v1`. The vision model identifier is `btd6-vision` (Gemma 4 12B). Do not load the 27B or 35B models while the game is running.
+
+The current purpose is the tower unlock tree: upgrade XP first, Gift Box pops second. Profile numbers live in `knowledge/profile.json` and the tree in `knowledge/progression.json`. If the home screen is visible and `last_seen` is not today, read level, the XP bar, Expert-map progress, and the Gift Box selection, then update those files. Do not store the display name.
+
+Search before re-measuring:
+
+```bash
+.venv/bin/python Autoplay/knowledge_store.py "<question>"
+```
+
+`--kind` is `controls`, `mechanics`, `meta`, `profile`, `progression`, `rounds`, `success`, `failure`, or `error`.
+
+A target tower that cannot hit a documented round property needs a specialty before that round. The gates are in `knowledge/rounds.json`. Prefer the hero, because hero cash takes no tower-XP share. Keep any extra tower at the minimum that closes the hole.
+
+## Never regress
+
+- Menu clicks come from `knowledge/controls.json` through `position()`. Do not put a new coordinate literal in `play_collection_event.py`.
+- A verified control stays verified until a live click misses. Then call `mark_control_stale` and write the new point only after a screenshot shows the expected screen.
+- Expert maps were locked at 10/20 on 2026-09-21. Do not start `play_collection_event.py`'s 35-game loop, and do not treat Expert scripts as working, until a success log says an Expert map actually opened.
+- Do not rewrite action-script placements or Hard prices unless a logged game shows the old value failed.
+- Input is `Autoplay/input_backend.py`. Do not import `ctypes`, `pydirectinput`, `keyboard`, or `playsound`.
+- Screen Recording and Accessibility belong to Cursor, not to a process named pyautogui. Do not capture or click the game unless the user says it is open and ready. One click, then a screenshot, then a knowledge entry.
+- Do not commit `.venv`, screen captures, or the player's name. Do not commit unless asked.
+
+## When something fails
+
+Log it in the matching folder (`successes`, `failures`, `errors`) with `record_success`, `record_failure`, or `record_error`. Say what was expected, what appeared, and which control id was involved. A miss that is not written down will be repeated.

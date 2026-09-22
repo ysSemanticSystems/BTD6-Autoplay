@@ -19,6 +19,7 @@ if str(AUTOPLAY_DIR) not in sys.path:
 import autoplayV2
 from config import REFERENCE_DIR, USE_LMSTUDIO_VISION
 from input_backend import click as click_logical, click_design
+from knowledge_store import position, record_error, record_failure
 from lmstudio_client import classify_ui, is_available as lmstudio_available
 
 print('-----------')
@@ -176,32 +177,36 @@ def click(position):
     '''Click a logical-screen position (already scaled, e.g. from template match).'''
     click_logical(position)
 
+def click_named(control_id: str):
+    """Click a position stored in knowledge/controls.json."""
+    click_design(position(control_id))
+
 def click_play():
-    click_design((835, 930))
+    click_named('home.play')
 
 def click_beginner():
-    click_design((582, 981))
+    click_named('map.beginner')
 
 def click_expert():
-    click_design((1338, 976))
+    click_named('map.expert')
 
 def click_page_right():
-    click_design((1642, 432))
+    click_named('map.page_right')
 
 def click_hard():
-    click_design((1296, 418))
+    click_named('map.hard')
 
 def click_standard():
-    click_design((632, 587))
+    click_named('map.standard')
 
 def click_home():
-    click_design((702, 859))
+    click_named('victory.home')
 
 def click_home_loss():
-    click_design((575, 823))
+    click_named('defeat.home')
 
 def click_victory_next():
-    click_design((939, 907))
+    click_named('victory.next')
 
 def collect_event():
     '''Collect event rewards after beating a level'''
@@ -230,6 +235,17 @@ def main():
             beat_level = autoplayV2.game_loop(expert_map)
         else:
             print('Reward symbol not found, exitting program')
+            record_failure(
+                'Bonus marker was not on the expert pages',
+                'Template search and the vision fallback did not find a bonus map. '
+                'Check knowledge/mechanics.json collection.badge before trusting oct_bonus_rewards.png.',
+                tags=['collection', 'template', 'menu'],
+            )
+            record_error(
+                'Collection menu stopped because the bonus marker was missing',
+                f'Template: {bonus_rewards_image}',
+                tags=['collection', 'template'],
+            )
             exit()
         # log if we somehow didn't beat the level
         if beat_level == False:

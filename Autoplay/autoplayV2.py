@@ -765,6 +765,19 @@ def game_loop(script) -> bool:
         # Exit if loop somehow broke
         if broken_counter > broken_thresh:
             print(f'Nothing has occurred within broken_thresh:{broken_thresh} loops. Something has probably gone wrong.')
+            from knowledge_store import record_error, record_failure
+            record_failure(
+                'Game loop made no progress',
+                f'No affordable action completed within {broken_thresh} polls. '
+                f'Next action was {action.name} {action.action} costing {action_cost}. '
+                'Money OCR, a stale click, or a price change can cause this.',
+                tags=['game-loop', 'money', str(action.name)],
+            )
+            record_error(
+                'Game loop exceeded the stall threshold',
+                f'broken_thresh={broken_thresh} action={action.name} {action.action} cost={action_cost}',
+                tags=['game-loop'],
+            )
             return False
 
         # Manually update rounds based on sanctuary
@@ -796,6 +809,19 @@ def game_loop(script) -> bool:
 
     # All actions have been completed, wait for game to end
     won = wait_till_victory()
+    from knowledge_store import record_failure, record_success
+    if won:
+        record_success(
+            'Action script finished and the game was won',
+            f'Script length {len(script)} on mode {game_mode}.',
+            tags=['game-loop', 'victory', game_mode],
+        )
+    else:
+        record_failure(
+            'Action script finished but the game was not won',
+            'Victory was not detected before the wait timed out, or a defeat screen appeared.',
+            tags=['game-loop', 'defeat', game_mode],
+        )
     return won
 
 

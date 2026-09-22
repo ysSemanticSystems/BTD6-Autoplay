@@ -30,7 +30,7 @@ def main() -> None:
     print("hard dart / ninja / psi:", cost_of("Dart Monkey", "place"),
           cost_of("Ninja Monkey", "place"), cost_of("Hero", "Psi"))
     print("heli hard (was hardcoded 1070):", scale_cost(1500))
-    print("lm studio models:", models or "server not reachable")
+    print("lm studio catalog:", models or "server not reachable")
     print("vision model loaded:", is_available(LMSTUDIO_VISION_MODEL),
           f"({LMSTUDIO_VISION_MODEL})")
     if screen.logical_width != 1920 or screen.logical_height != 1080:

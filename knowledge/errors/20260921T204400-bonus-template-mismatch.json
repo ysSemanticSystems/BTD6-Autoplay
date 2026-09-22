@@ -1,0 +1,10 @@
+{
+  "time": "2026-09-21T20:43:00",
+  "kind": "error",
+  "title": "2020 bonus-rewards template does not match the live badge",
+  "tags": ["collection", "template", "vision"],
+  "detail": "play_collection_event still points at reference_images/oct_bonus_rewards.png. The live marker is a round monkey portrait with a number ribbon (100 on Beginner page 1, 40 or 60 on some Expert cards). Template search for the October 2020 icon will miss and should be logged as a failure, not treated as a missing event.",
+  "extra": {
+    "template": "Autoplay/reference_images/oct_bonus_rewards.png"
+  }
+}

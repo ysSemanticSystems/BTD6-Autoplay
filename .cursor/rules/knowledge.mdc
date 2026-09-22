@@ -1,0 +1,21 @@
+---
+description: How learned controls, mechanics, strategies, and logs are stored
+globs: knowledge/**/*.json
+alwaysApply: false
+---
+
+# Knowledge files
+
+The JSON documents below are the source of truth. Logs are one JSON file per event, never appended into a single growing file.
+
+- `knowledge/controls.json` — display, `ui.<id>.position`, `status` (`verified`, `unverified`, `stale`), hotkeys.
+- `knowledge/mechanics.json` — rules of the game as observed or cited, each entry with `id`, `topic`, `as_of`, `text`.
+- `knowledge/meta.json` — strategies and whether they are safe to run.
+- `knowledge/profile.json` — level, account XP bar, Expert-map progress, Gift Box selection. Refresh when `last_seen` is not today.
+- `knowledge/progression.json` — which towers are level-gated, Gift Box, or still unknown. Replace `unknown` only from a menu read.
+- `knowledge/rounds.json` — standard-round property gates through round 80, and when a specialty tower is required.
+- `knowledge/successes/`, `knowledge/failures/`, `knowledge/errors/` — what went right, what went wrong, and what stopped a run.
+
+When a patch, a display change, or a bad click proves a control wrong, set `status` to `stale`, keep `previous`, and add a failure file. Replace `position` only after the new point is confirmed on screen. Update `mechanics.json` when a rule changes (unlock count, badge art, price). Update `meta.json` when a strategy becomes safe or unsafe.
+
+Do not store screenshots or the account name in these files. Search with `Autoplay/knowledge_store.py` before adding a duplicate entry.

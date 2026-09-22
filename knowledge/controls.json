@@ -1,0 +1,157 @@
+{
+  "updated": "2026-09-21T20:44:00",
+  "display": {
+    "machine": "Mac mini M4 Pro, 1920x1080 at 1x",
+    "logical": [1920, 1080],
+    "pixels": [1920, 1080],
+    "scale": 1.0,
+    "verified": "2026-09-21",
+    "note": "Action scripts were written for this same design size. Relearn positions when the display scale or the BTD6 UI moves."
+  },
+  "ui": {
+    "home.play": {
+      "kind": "click",
+      "position": [961, 947],
+      "previous": [835, 930],
+      "status": "verified",
+      "verified": "2026-09-21",
+      "learned_because": "The 2020 Play coordinate no longer sits on the button. Clicking 961,947 opened map select."
+    },
+    "map.beginner": {
+      "kind": "click",
+      "position": [570, 970],
+      "previous": [582, 981],
+      "status": "verified",
+      "verified": "2026-09-21",
+      "learned_because": "Live click opened the Beginner map page."
+    },
+    "map.intermediate": {
+      "kind": "click",
+      "position": [812, 970],
+      "status": "unverified",
+      "note": "Estimated from the tab row on 2026-09-21. Not clicked."
+    },
+    "map.advanced": {
+      "kind": "click",
+      "position": [1085, 970],
+      "status": "unverified",
+      "note": "Estimated from the tab row on 2026-09-21. Not clicked."
+    },
+    "map.expert": {
+      "kind": "click",
+      "position": [1354, 970],
+      "previous": [1338, 976],
+      "status": "verified",
+      "verified": "2026-09-21",
+      "learned_because": "Live click returned to the Expert pages."
+    },
+    "map.page_left": {
+      "kind": "click",
+      "position": [277, 435],
+      "status": "verified",
+      "verified": "2026-09-21",
+      "note": "Orange arrow, located by color. Not clicked on its own."
+    },
+    "map.page_right": {
+      "kind": "click",
+      "position": [1621, 452],
+      "previous": [1642, 432],
+      "status": "verified",
+      "verified": "2026-09-21",
+      "learned_because": "Live clicks advanced Expert from page 1 to page 3."
+    },
+    "map.hard": {
+      "kind": "click",
+      "position": [1296, 418],
+      "status": "unverified",
+      "note": "2020 coordinate. Relearn if Hard Standard fails to select."
+    },
+    "map.standard": {
+      "kind": "click",
+      "position": [632, 587],
+      "status": "unverified",
+      "note": "2020 coordinate. Relearn if the standard-mode button misses."
+    },
+    "victory.next": {
+      "kind": "click",
+      "position": [939, 907],
+      "status": "unverified",
+      "note": "2020 coordinate."
+    },
+    "victory.home": {
+      "kind": "click",
+      "position": [702, 859],
+      "status": "unverified",
+      "note": "2020 coordinate."
+    },
+    "defeat.home": {
+      "kind": "click",
+      "position": [575, 823],
+      "status": "unverified",
+      "note": "2020 coordinate, used when a continue button is on screen."
+    },
+    "hud.options": {
+      "kind": "click",
+      "position": [1601, 41],
+      "status": "unverified",
+      "note": "2020 coordinate for the in-game options gear."
+    },
+    "hud.autostart": {
+      "kind": "click",
+      "position": [1322, 334],
+      "status": "unverified",
+      "note": "2020 coordinate for the auto-start switch."
+    },
+    "hud.dismiss": {
+      "kind": "click",
+      "position": [1600, 1040],
+      "status": "unverified",
+      "note": "2020 click-away after selecting a tower."
+    },
+    "popup.ok": {
+      "kind": "click",
+      "position": [960, 710],
+      "status": "verified",
+      "verified": "2026-09-21",
+      "learned_because": "Dismissed the Unlocking Maps dialog."
+    }
+  },
+  "hotkeys": {
+    "source": "Blooncyclopedia, September 2026. Placement keys also live in Autoplay/monkey_info/monkey_hotkeys.py.",
+    "place": {
+      "Q": "Dart Monkey",
+      "W": "Boomerang Monkey",
+      "E": "Bomb Shooter",
+      "R": "Tack Shooter",
+      "T": "Ice Monkey",
+      "Y": "Glue Gunner",
+      "Z": "Sniper Monkey",
+      "X": "Monkey Sub",
+      "C": "Monkey Buccaneer",
+      "V": "Monkey Ace",
+      "B": "Heli Pilot",
+      "N": "Mortar Monkey",
+      "M": "Dartling Gunner",
+      "A": "Wizard Monkey",
+      "S": "Super Monkey",
+      "D": "Ninja Monkey",
+      "F": "Alchemist",
+      "G": "Druid",
+      "H": "Banana Farm",
+      "J": "Spike Factory",
+      "K": "Monkey Village",
+      "L": "Engineer Monkey",
+      "I": "Beast Handler",
+      "U": "Hero"
+    },
+    "unbound_by_default": ["Mermonkey", "Desperado", "Skywarden"],
+    "upgrade_path_1": ",",
+    "upgrade_path_2": ".",
+    "upgrade_path_3": "/",
+    "targeting_next": "tab",
+    "targeting_previous": "ctrl+tab",
+    "start_or_fast_forward": "space",
+    "sell": "backspace",
+    "pause": "`"
+  }
+}

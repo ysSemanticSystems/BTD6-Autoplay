@@ -1,0 +1,36 @@
+{
+  "updated": "2026-09-21T20:55:00",
+  "primary_goal": "Unlock tower upgrades, then Gift Box towers. Collection rewards are secondary until that tree is caught up.",
+  "strategies": [
+    {
+      "id": "xp.one-tower-hard",
+      "status": "active",
+      "text": "Each run should finish Hard and stop at round 80. On Beginner that is 126,150 tower XP if one tower type holds all non-hero cash. Use the hardest map the account can open and the script can beat. Today that is a Beginner map, because Expert is locked at 10/20. Do not freeplay: rounds 81-100 add about 31,590 XP at the 30 percent rate and cost more time than the next full Hard game. Rounds 51-80 are most of the payout, so a run that dies before then wastes the game. Pick one target tower, then check knowledge/rounds.json. Camo starts on 24, purple on 25, lead on 28, and camo lead on 59; ceramics, MOABs, BFBs, and the round-80 ZOMG are in that file too. If the target cannot hit one of those, add the cheapest specialty that can, preferably via the hero so the XP share stays on the target. Do not add a tower that covers a property the target already hits.",
+      "numbers": {
+        "beginner_hard_rounds_3_to_80": 126150,
+        "beginner_freeplay_81_to_100": 31590,
+        "expert_hard_when_unlocked": 163995,
+        "beginner_impoppable_rounds_6_to_100": 231150
+      }
+    },
+    {
+      "id": "expert.psi-ninja-alch-ace",
+      "status": "unverified-since-2020",
+      "maps": ["dark_castle", "sanctuary", "ravine", "flooded_valley", "infernal", "bloody_puddles", "workshop", "quad", "muddy_puddles", "ouch"],
+      "text": "The checked-in action scripts place Psi, support the early game with Dart or Sub, then Ninja, Alchemist, Ace or Heli, Village, and Sniper on Hard. Costs were rescaled to September 2026. Placements have not been replayed on the current patch, and this account cannot open Expert maps yet.",
+      "do_not_run_until": "Expert maps unlock at 20 unique maps beaten. Progress on 2026-09-21 was 10/20."
+    },
+    {
+      "id": "farm.beginner-until-expert-unlock",
+      "status": "later",
+      "maps": ["tree_stump", "town_center", "middle_of_the_road", "one_two_tree", "scrapyard", "the_cabin"],
+      "text": "Clear 10 more unlocked maps so Expert opens. Beginner page 1 is available and every card there showed a 100 collection badge. There is no placement script yet, so the first clears need a new script or a recorded one.",
+      "why": "Expert farming is blocked by the unlock dialog, not by a bad click."
+    },
+    {
+      "id": "menu.use-learned-clicks",
+      "status": "active",
+      "text": "Map navigation should read positions from knowledge/controls.json. When a click does not land on the expected screen, mark that control stale and write a failure instead of editing the number in the play script."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "time": "2026-09-21T20:42:00",
+  "kind": "failure",
+  "title": "Expert farming blocked because maps are locked",
+  "tags": ["expert", "unlock", "collection"],
+  "detail": "Every Expert card on three pages showed a padlock, including Dark Castle and #OUCH. Clicking #OUCH opened Unlocking Maps: Beat 10 more maps to unlock all Expert maps, progress 10/20. The 2020 Expert action scripts cannot start. The old Play coordinate 835,930 was also wrong; the working point is stored on home.play.",
+  "extra": {
+    "progress": "10/20",
+    "control_id": "home.play",
+    "previous_play": [835, 930],
+    "learned_play": [961, 947]
+  }
+}

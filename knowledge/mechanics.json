@@ -1,0 +1,83 @@
+{
+  "updated": "2026-09-21T20:55:00",
+  "entries": [
+    {
+      "id": "prices.hard",
+      "topic": "prices",
+      "as_of": "2026-09-21",
+      "text": "Menu prices in monkey_info are Medium from Blooncyclopedia, then scaled. Hard Standard is 108% of Medium, rounded to the nearest $5. Easy is 85%. Impoppable is 120%. Monkey Knowledge discounts are not applied. Collection runs use Hard."
+    },
+    {
+      "id": "prices.examples.hard",
+      "topic": "prices",
+      "as_of": "2026-09-21",
+      "text": "Hard placement examples checked against the scaler: Dart 215, Ninja 430, Alchemist 595, Ace 865, Heli 1620, Village 1295, Psi 1080. The old Infernal script had hardcoded Heli at 1070."
+    },
+    {
+      "id": "mode.hard",
+      "topic": "rules",
+      "as_of": "2026-09-21",
+      "text": "Hard Standard starts on round 3, ends on round 80, 100 lives, bloons move faster than Medium. The last round contains a ZOMG."
+    },
+    {
+      "id": "maps.expert.grid",
+      "topic": "maps",
+      "as_of": "2026-09-21",
+      "text": "Expert pages seen live, 2 rows by 3 columns. Page 1: Tricky Tracks, Glacial Trail, Dark Dungeons, Sanctuary, Ravine, Flooded Valley. Page 2: Infernal, Bloody Puddles, Workshop, Quad, Dark Castle, Muddy Puddles. Page 3: #OUCH. Blons was not on these three pages."
+    },
+    {
+      "id": "maps.expert.unlock",
+      "topic": "maps",
+      "as_of": "2026-09-21",
+      "text": "This account has beaten 10 of 20 maps required to unlock every Expert map. The in-game dialog said: Beat 10 more maps to unlock all Expert maps. Every Expert card showed a padlock, so the Expert action scripts cannot start a game yet."
+    },
+    {
+      "id": "maps.beginner.page1",
+      "topic": "maps",
+      "as_of": "2026-09-21",
+      "text": "Beginner page 1 is unlocked: Tree Stump, Town Center, Middle of the Road, One Two Tree, Scrapyard, The Cabin. There is no placement script for these maps."
+    },
+    {
+      "id": "collection.badge",
+      "topic": "collection",
+      "as_of": "2026-09-21",
+      "text": "The 2020 oct_bonus_rewards.png does not match the current UI. Live cards show a round monkey portrait with a number ribbon. Beginner page 1 showed 100 on every map. Expert showed 40 on Tricky Tracks and 60 on Flooded Valley, Bloody Puddles, Workshop, Quad, Dark Castle, and #OUCH. Other Expert cards had no ribbon."
+    },
+    {
+      "id": "collection.rewards",
+      "topic": "collection",
+      "as_of": "2026-09-21",
+      "text": "One map per difficulty is supposed to pay bonus collection rewards and then rotate. Expert Hard pays more than Beginner. The single bonus icon from 2020 is not what is on screen now."
+    },
+    {
+      "id": "xp.round-formula",
+      "topic": "xp",
+      "as_of": "2026-09-21",
+      "text": "Pops do not grant tower XP or account XP. Each finished round pays a fixed amount, shared by player XP, hero XP, and tower XP before map and freeplay modifiers. Round r pays 20r+20 through round 20, 40(r-20)+420 for rounds 21-50, and 90(r-50)+1620 after round 50. Map multipliers: Beginner 1, Intermediate 1.1, Advanced 1.2, Expert 1.3. Tower XP ignores cash spent on the hero and is split by cash currently invested in each tower type at the end of the round."
+    },
+    {
+      "id": "xp.per-run",
+      "topic": "xp",
+      "as_of": "2026-09-21",
+      "text": "A full game with no freeplay pays, on Beginner: Easy rounds 1-40 = 21,400; Medium 1-60 = 56,950; Hard 3-80 = 126,150; Impoppable or CHIMPS 6-100 = 231,150. Multiply by the map tier. Rounds 51-80 are 90,450 of the 126,150 Hard total, about 72 percent. Freeplay cuts tower and player XP to 30 percent until round 100 and 10 percent after. Rounds 81-100 in freeplay add only about 31,590 Beginner XP. Stop at round 80 on Hard."
+    },
+    {
+      "id": "xp.focus",
+      "topic": "xp",
+      "as_of": "2026-09-21",
+      "text": "Spend cash on one target tower type. A specialty tower is required when knowledge/rounds.json shows a round through 80 whose property that tower cannot hit. Cover that hole with the hero when the hero can, since hero cash takes no share. Otherwise use the cheapest tower that hits the property, leave it at that minimum, and sell it once the target's upgrade closes the hole. A second tower that does not cover a documented hole only dilutes XP. Selling changes the invested cash used for later rounds."
+    },
+    {
+      "id": "xp.gift-box-pops",
+      "topic": "xp",
+      "as_of": "2026-09-21",
+      "text": "Gift Box pops are separate from tower XP. Only the selected Gift Box tower receives pops, and progress is kept when you switch. Dartling Gunner, Beast Handler, and Mermonkey need 3,000,000 pops. Desperado needs 3,500,000. A pop is a destroyed layer, including layers skipped by an insta-kill. Regrow farming creates pops but does not create tower XP."
+    },
+    {
+      "id": "hotkeys.new-towers",
+      "topic": "controls",
+      "as_of": "2026-09-21",
+      "text": "Beast Handler defaults to I. Mermonkey, Desperado, and Skywarden have no default placement hotkey and must be bound in Settings before a script can place them."
+    }
+  ]
+}

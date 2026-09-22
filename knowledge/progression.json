@@ -1,0 +1,39 @@
+{
+  "updated": "2026-09-21T20:55:00",
+  "how_to_read": "Level gates are done at account level 53 if the normal one-tower-per-level choices were taken. Upgrade tiers and Gift Box pop counts are unknown until those menus are read. unknown means not observed, not locked.",
+  "level_gates": [
+    {"levels": "2-6", "picks": 5, "pool": "Primary except Desperado", "status": "past"},
+    {"levels": "7-12", "picks": 6, "pool": "Military except Dartling Gunner", "status": "past"},
+    {"levels": "15-17,19-20", "picks": 5, "pool": "Magic except Mermonkey and Skywarden", "status": "past"},
+    {"levels": "22-24,26", "picks": 4, "pool": "Support except Beast Handler", "status": "past"},
+    {"level": 30, "unlocks": "Monkey Knowledge, Contested Territory, Boss Rush, Gift Box", "status": "past"}
+  ],
+  "towers": {
+    "Dart Monkey": {"gate": "start", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Boomerang Monkey": {"gate": "primary 2-6", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Bomb Shooter": {"gate": "primary 2-6", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Tack Shooter": {"gate": "primary 2-6", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Ice Monkey": {"gate": "primary 2-6", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Glue Gunner": {"gate": "primary 2-6", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Sniper Monkey": {"gate": "military 7-12", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Monkey Sub": {"gate": "military 7-12", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Monkey Buccaneer": {"gate": "military 7-12", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Monkey Ace": {"gate": "military 7-12", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Heli Pilot": {"gate": "military 7-12", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Mortar Monkey": {"gate": "military 7-12", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Wizard Monkey": {"gate": "magic 15-20", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Super Monkey": {"gate": "magic 15-20", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Ninja Monkey": {"gate": "magic 15-20", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Alchemist": {"gate": "magic 15-20", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Druid": {"gate": "magic 15-20", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Banana Farm": {"gate": "support 22-26", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Spike Factory": {"gate": "support 22-26", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Monkey Village": {"gate": "support 22-26", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Engineer Monkey": {"gate": "support 22-26", "base_status": "assumed-unlocked", "tiers": "unknown"},
+    "Dartling Gunner": {"gate": "gift-box", "pops_required": 3000000, "pops": null, "base_status": "unknown"},
+    "Beast Handler": {"gate": "gift-box", "pops_required": 3000000, "pops": null, "base_status": "unknown"},
+    "Mermonkey": {"gate": "gift-box", "pops_required": 3000000, "pops": null, "base_status": "unknown"},
+    "Desperado": {"gate": "gift-box", "pops_required": 3500000, "pops": null, "base_status": "unknown"},
+    "Skywarden": {"gate": "gift-box", "pops_required": null, "pops": null, "base_status": "unknown", "note": "Listed with the level-30 Gift Box. Pop requirement was not confirmed."}
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "last_seen": "2026-09-21T20:38:00",
+  "source": "Home screen while map select was open. Display name is intentionally not stored.",
+  "level": 53,
+  "xp_into_level": 96926,
+  "xp_required_for_next": 170000,
+  "next_level": 54,
+  "expert_maps": {
+    "unique_maps_beaten": 10,
+    "required": 20,
+    "note": "Dialog: Beat 10 more maps to unlock all Expert maps."
+  },
+  "gift_box": {
+    "available": true,
+    "selected_tower": null,
+    "note": "Level 30 already passed, so the Gift Box is open. Which tower is receiving pops was not read."
+  },
+  "refresh": "When the home screen is visible and last_seen is not today, or after a finished run, read level, the XP bar, expert-map progress, and the Gift Box selection. Update this file. Do not store the display name."
+}

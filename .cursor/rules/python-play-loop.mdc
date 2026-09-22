@@ -1,0 +1,25 @@
+---
+description: Python style and integrity for the play loop
+globs: Autoplay/**/*.py
+alwaysApply: false
+---
+
+# Play-loop Python
+
+New modules use `from __future__ import annotations`, `pathlib`, and the existing helpers: `config`, `input_backend`, `screen`, `knowledge_store`, `costs`.
+
+- Run `.venv/bin/python -m py_compile` on every file you edit.
+- Resolve reference images from `config.REFERENCE_DIR`. Templates are 1920x1080; scale them with `screen.get_screen()`, do not assume a Windows desktop.
+- Money reads go through `get_money()` (Tesseract, then `btd6-vision`). Do not add a second OCR path.
+- Prices stay as Medium integers in `monkey_info` and pass through `scale_cost`. The active mode is Hard.
+- Leave `do_action`, `do_action_manual`, and `do_action_sanctuary` in place. Do not merge them in a drive-by edit.
+- A stalled `game_loop` or a missing bonus marker must call the knowledge store before returning or exiting.
+- Hotkeys for Mermonkey, Desperado, and Skywarden are empty until the player binds them. Do not invent keys.
+
+```python
+# Bad: a fresh literal the next session cannot find
+click_design((961, 947))
+
+# Good: the learned point
+click_design(position("home.play"))
+```

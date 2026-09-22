@@ -1,0 +1,11 @@
+{
+  "time": "2026-09-21T20:38:00",
+  "kind": "success",
+  "title": "Play click opened map select",
+  "tags": ["controls", "home.play", "screen-recording"],
+  "detail": "After Screen & System Audio Recording and Accessibility were granted to Cursor, a full-screen capture was the live 1920x1080 home screen. Clicking the learned Play position 961,947 opened Expert map select. Beginner at 570,970 and Expert at 1354,970 also switched tabs. Page-right at 1621,452 advanced Expert pages.",
+  "extra": {
+    "display": [1920, 1080],
+    "controls": ["home.play", "map.beginner", "map.expert", "map.page_right"]
+  }
+}

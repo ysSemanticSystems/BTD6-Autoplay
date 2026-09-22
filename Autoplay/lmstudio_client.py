@@ -26,19 +26,47 @@ def _headers() -> dict[str, str]:
     }
 
 
-def list_models() -> list[str]:
+def _server_root() -> str:
+    base = LMSTUDIO_BASE_URL.rstrip("/")
+    if base.endswith("/v1"):
+        return base[:-3]
+    return base
+
+
+def model_rows() -> list[dict[str, Any]]:
+    """LM Studio's native list includes unloaded models and a state field."""
     try:
-        resp = requests.get(f"{LMSTUDIO_BASE_URL}/models", timeout=3)
+        resp = requests.get(f"{_server_root()}/api/v0/models", timeout=3)
         resp.raise_for_status()
-        return [row["id"] for row in resp.json().get("data", [])]
+        return resp.json().get("data", [])
     except Exception:
         return []
+
+
+def list_models(loaded_only: bool = False) -> list[str]:
+    rows = model_rows()
+    if not rows:
+        try:
+            resp = requests.get(f"{LMSTUDIO_BASE_URL}/models", timeout=3)
+            resp.raise_for_status()
+            return [row["id"] for row in resp.json().get("data", [])]
+        except Exception:
+            return []
+    if loaded_only:
+        rows = [row for row in rows if row.get("state") == "loaded"]
+    names: list[str] = []
+    for row in rows:
+        for key in ("id", "identifier"):
+            value = row.get(key)
+            if value and value not in names:
+                names.append(value)
+    return names
 
 
 def is_available(model: str | None = None) -> bool:
     if not USE_LMSTUDIO_VISION:
         return False
-    models = list_models()
+    models = list_models(loaded_only=True)
     if not models:
         return False
     if model is None:
@@ -57,6 +85,7 @@ def chat_vision(prompt: str, image: Image.Image, model: str | None = None, max_t
         "model": model or LMSTUDIO_VISION_MODEL,
         "temperature": 0,
         "max_tokens": max_tokens,
+        "reasoning_effort": "none",
         "messages": [
             {
                 "role": "user",
@@ -77,7 +106,11 @@ def chat_vision(prompt: str, image: Image.Image, model: str | None = None, max_t
         timeout=LMSTUDIO_TIMEOUT,
     )
     resp.raise_for_status()
-    return resp.json()["choices"][0]["message"]["content"].strip()
+    message = resp.json()["choices"][0]["message"]
+    content = (message.get("content") or "").strip()
+    if content:
+        return content
+    return (message.get("reasoning_content") or "").strip()
 
 
 def read_money(image: Image.Image) -> int:
