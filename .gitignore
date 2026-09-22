@@ -2,3 +2,4 @@ stuff_no_look
 __pycache__
 testing.py
 old_depricated_code.py
+.venv/

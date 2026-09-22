@@ -50,6 +50,14 @@ hotkeys = {
     'Village': 'K',
     'Engineer Monkey': 'L',
     'Engineer': 'L',
+    'Beast Handler': 'I',
+    'Beast': 'I',
+    # No default hotkey in current BTD6. Bind these in Settings → Hotkeys
+    # if you want scripts to place them.
+    'Mermonkey': '',
+    'Mer': '',
+    'Desperado': '',
+    'Skywarden': '',
     'Upgrade 1': ',',
     'Upgrade 2': '.',
     'Upgrade 3': '/',
@@ -81,6 +89,7 @@ reversed_hotkeys = {
     'J': 'Spike Factory',
     'K': 'Monkey Village',
     'L': 'Engineer Monkey',
+    'I': 'Beast Handler',
     ',': 'Upgrade 1',
     '.': 'Upgrade 2',
     '/': 'Upgrade 3',

@@ -1,187 +1,168 @@
-#!/usr/bin/python3 
-#
+#!/usr/bin/python3
 #
 # Desc: Plays through a level once a level is loaded.
+# Adapted for macOS (Mac mini M4 Pro) and BTD6 as of September 2026.
 #
-# 
-#
+from __future__ import annotations
 
-
-import ctypes
-
-import keyboard
-import pyautogui
-import pydirectinput
-
-import playsound
+import sys
 import time
+from pathlib import Path
+
+import cv2
+import numpy as np
+import pyautogui
 from PIL import Image, ImageGrab
 from pytesseract import pytesseract
-import numpy as np
-import cv2 # if installing, try 'pip install opencv-python'
-import os
 
+AUTOPLAY_DIR = Path(__file__).resolve().parent
+if str(AUTOPLAY_DIR) not in sys.path:
+    sys.path.insert(0, str(AUTOPLAY_DIR))
+
+from action_class import Action
+from config import GAME_MODE, REFERENCE_DIR, TESSERACT_CMD, USE_LMSTUDIO_VISION
+from input_backend import click_design, press
+from lmstudio_client import classify_ui, is_available as lmstudio_available, read_money
+from monkey_info.monkey_class import Monkey
 from monkey_info.monkey_hotkeys import hotkeys, reversed_hotkeys
 from monkey_info.monkey_info import monkey_info
-from monkey_info.monkey_class import Monkey
-from action_class import Action
-print('------------------')
+from screen import get_screen
 
+print("------------------")
 
-# region --Initial Set-up--  
-# Setting up tesseract (Only needed if tesseract executable is not in your PATH)
-# For windows, there is a tesseract installer that is needed. Look it up.
-path_to_tesseract = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-pytesseract.tesseract_cmd = path_to_tesseract
+# region --Initial Set-up--
+pytesseract.tesseract_cmd = TESSERACT_CMD
 
-# Variables to determine screenshot ranges (formed from tests done on my local computer)
-# (Update: looking back on this code it looks like a standard 1920x1080 resolution, which should be the default for the game)
-test_scrn_width = 1920 
-test_scrn_height = 1080 
+# Action scripts and menu clicks were authored against 1920x1080.
+test_scrn_width = 1920
+test_scrn_height = 1080
 
-# Get screen size
-user32 = ctypes.windll.user32
-screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-screen_width = screensize[0]
-screen_height = screensize[1]
-print(f'Screensize: {screensize}')
+_screen = get_screen()
+screensize = (_screen.logical_width, _screen.logical_height)
+screen_width = _screen.logical_width
+screen_height = _screen.logical_height
+print(
+    f"Screensize: {screensize}  pixels={_screen.pixel_width}x{_screen.pixel_height}  "
+    f"scale={_screen.scale:.2f}  mode={GAME_MODE}"
+)
 
-# Define storage important to running a game
 monkey_dict = {}
-game_mode = 'hard'
+game_mode = GAME_MODE
 
-# Special case (This map screws with the code b/c monkeys move)
 map_is_sanctuary = False
 manual_rounds = False
 
 # endregion
 
 # region ------------- Image Grabbing Methods --------------
-def get_money():
-    '''Extract money value using a small screenshot of the game'''
-    # First indicator a screenshot is going to be taken
-    # playsound.playsound(r"D:\randy\Audio\Sound Effects\The Nut Button - When Memes Become Reality.mp3")
+def _resolve_reference(given_image: str) -> str:
+    path = Path(given_image)
+    if path.exists():
+        return str(path)
+    candidate = REFERENCE_DIR / path.name
+    if candidate.exists():
+        return str(candidate)
+    return given_image
 
+
+def _money_crop() -> Image.Image:
+    bbox = get_screen().to_pixel_bbox(344, 10, 500, 75)
+    return ImageGrab.grab(bbox=bbox)
+
+
+def get_money():
+    """Extract cash from the HUD. Tesseract first, local Gemma vision as backup."""
     print_stats = False
-    # Screenshot
-    img = ImageGrab.grab(bbox = (int(344/test_scrn_width*int(screensize[0])), # left bound
-                                int(10/test_scrn_height*int(screensize[1])), # upper bound
-                                int(500/test_scrn_width*int(screensize[0])), # right bound
-                                int(75/test_scrn_height*int(screensize[1]))  # lower bound
-                            )
-    )
-    # img.show()
-    img = np.asfarray(img)
-    height = len(img)
-    width = len(img[0])
-    img.setflags(write=1)
+    img = _money_crop()
+    arr = np.array(img)
+    height, width = arr.shape[:2]
     for loop1 in range(height):
         for loop2 in range(width):
-            r,g,b = img[loop1,loop2]
-            if sum([r,g,b]) < 700:
-                img[loop1,loop2] = [0,0,0]
+            r, g, b = arr[loop1, loop2][:3]
+            if int(r) + int(g) + int(b) < 700:
+                arr[loop1, loop2] = [0, 0, 0] + list(arr[loop1, loop2][3:])
+    cleaned = Image.fromarray(arr)
 
-    img = Image.fromarray(np.uint8(img))
-    # img.show()
-
-    # Convert to text. (psm 6,7,8 seem to be best)
-    text = pytesseract.image_to_string(img, config='--psm 7')
-    if print_stats: print(f'Text:{text}')
-    money = ''
-
-    # Convert money text to number
+    text = pytesseract.image_to_string(cleaned, config="--psm 7")
+    if print_stats:
+        print(f"Text:{text}")
+    money = "".join(ch for ch in text if ch.isdigit())
     try:
-        for char in text:
-            if char.isdigit():
-                money += char
-        money = int(money)
-        if print_stats: print(f'**********************money:{money}')
-    except:
-        if print_stats: print('money not recognized')
-        money = -1
+        value = int(money)
+    except ValueError:
+        value = -1
 
-    return money
+    if value < 0 and USE_LMSTUDIO_VISION and lmstudio_available():
+        value = read_money(img)
+        if print_stats:
+            print(f"LM Studio money:{value}")
+    return value
 
 
 def get_round():
-    '''Extract round value using a small screenshot of the game'''
-    # First indicator a screenshot is going to be taken
-    playsound.playsound(r"D:\randy\Audio\Sound Effects\The Nut Button - When Memes Become Reality.mp3")
-
-    # Screenshot
-    img = ImageGrab.grab(bbox = (int(1480/test_scrn_width*int(screensize[0])), # left bound
-                                int(10/test_scrn_height*int(screensize[1])), # upper bound
-                                int(1570/test_scrn_width*int(screensize[0])), # right bound
-                                int(75/test_scrn_height*int(screensize[1]))  # lower bound
-                            )
-    )
-    img.show()
-
-    # 6,7,8 seem to be best
-    text = pytesseract.image_to_string(img, config='--psm 7')
-    print(f'Text:{text}')
-    round = ''
-
-    # Convert money text to number
+    """Extract the current round from the HUD."""
+    bbox = get_screen().to_pixel_bbox(1480, 10, 1570, 75)
+    img = ImageGrab.grab(bbox=bbox)
+    text = pytesseract.image_to_string(img, config="--psm 7")
+    print(f"Text:{text}")
+    digits = "".join(ch for ch in text if ch.isdigit())
     try:
-        for char in text:
-            if char.isdigit():
-                round += char
-        money = int(round)
-        print(f'round:{round}')
-    except:
-        print('round not recognized')
-        round = -1
-
-    return round
+        return int(digits)
+    except ValueError:
+        print("round not recognized")
+        return -1
 
 
-def find_image(given_image: str, maxLoc_thresh = .05):
-    '''
+def find_image(given_image: str, maxLoc_thresh=0.05):
+    """
     See if given image is on the screen.
+    Templates were captured at 1920x1080; they are resized to this display.
     :returns: True if symbol found, false otherwise.
-              maxloc of match
-    '''
-    # with Image.open(given_image) as im:
-    #     im.show()
-
-    found = False # found image
-    location = [0, 0]
-
+              maxloc of match (or logical [x, y] when used by play_collection_event)
+    """
     method = cv2.TM_SQDIFF_NORMED
-
-    # Read images 
     image = pyautogui.screenshot()
-    # make image compatible with cv2
     large_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-    small_image = cv2.imread(given_image) 
+    small_image = cv2.imread(_resolve_reference(given_image))
+    if small_image is None:
+        print(f"Template missing: {given_image}")
+        return False, 1.0
+
+    fx, fy = get_screen().template_scale()
+    if abs(fx - 1.0) > 0.02 or abs(fy - 1.0) > 0.02:
+        new_w = max(1, int(small_image.shape[1] * fx))
+        new_h = max(1, int(small_image.shape[0] * fy))
+        small_image = cv2.resize(small_image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+    if small_image.shape[0] > large_image.shape[0] or small_image.shape[1] > large_image.shape[1]:
+        return False, 1.0
 
     result = cv2.matchTemplate(small_image, large_image, method)
-
-    # We want the minimum squared difference
     maxLoc, minLoc, comparedLoc, _ = cv2.minMaxLoc(result)
-    
-    # Location of best match
-    MPx,MPy = comparedLoc
-    location = [MPx, MPy]
-
-     # Step 2: Get the size of the template. This is the same size as the match.
-    trows,tcols = small_image.shape[:2]
-
-    # Step 3: Draw the rectangle on large_image
-    cv2.rectangle(large_image, (MPx,MPy),(MPx+tcols,MPy+trows),(0,0,255),3)
-
-    img = cv2.cvtColor(large_image, cv2.COLOR_BGR2RGB)
-    im_pil = Image.fromarray(img)
-    
-
     if maxLoc < maxLoc_thresh:
-        found = True
-        #im_pil.show()
-        # print(maxLoc, minLoc)
-        return found, maxLoc
-    else:
-        return found, maxLoc
+        return True, maxLoc
+    return False, maxLoc
+
+
+def find_image_location(given_image: str, maxLoc_thresh=0.05):
+    """Like find_image, but also returns the logical-pixel match location."""
+    method = cv2.TM_SQDIFF_NORMED
+    image = pyautogui.screenshot()
+    large_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+    small_image = cv2.imread(_resolve_reference(given_image))
+    if small_image is None:
+        return False, [0, 0], 1.0
+
+    fx, fy = get_screen().template_scale()
+    if abs(fx - 1.0) > 0.02 or abs(fy - 1.0) > 0.02:
+        new_w = max(1, int(small_image.shape[1] * fx))
+        new_h = max(1, int(small_image.shape[0] * fy))
+        small_image = cv2.resize(small_image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+    result = cv2.matchTemplate(small_image, large_image, method)
+    maxLoc, minLoc, comparedLoc, _ = cv2.minMaxLoc(result)
+    logical = list(get_screen().pixel_to_logical(*comparedLoc))
+    return maxLoc < maxLoc_thresh, logical, maxLoc
 
 
 def round_finished() -> bool:
@@ -190,8 +171,8 @@ def round_finished() -> bool:
     
     :returns: True if round is stopped, False if round is still going
     '''
-    result, stopped = find_image('Autoplay/reference_images/round_stopped.png')
-    result2, going = find_image('Autoplay/reference_images/round_going.png')
+    result, stopped = find_image(str(REFERENCE_DIR / 'round_stopped.png'))
+    result2, going = find_image(str(REFERENCE_DIR / 'round_going.png'))
     # print(result, stopped, result2, going)
     # Less means better match
     if stopped < going:
@@ -206,8 +187,13 @@ def check_victory_loss():
     
     :returns: found_victory (bool), found_loss (bool)
     '''
-    found_victory, _ = find_image('Autoplay/reference_images/victory.png')
-    found_loss, _ = find_image('Autoplay/reference_images/defeat.png')
+    found_victory, _ = find_image(str(REFERENCE_DIR / 'victory.png'))
+    found_loss, _ = find_image(str(REFERENCE_DIR / 'defeat.png'))
+    if not found_victory and not found_loss and USE_LMSTUDIO_VISION and lmstudio_available():
+        state = classify_ui(ImageGrab.grab())
+        screen = str(state.get('screen', '')).lower()
+        found_victory = screen == 'victory'
+        found_loss = screen == 'defeat'
     return found_victory, found_loss
     
 
@@ -230,39 +216,24 @@ def wait_till_victory():
 def start_game():
     '''start the game'''
     print('\nStarting Game')
-    # pyautogui.moveTo(1835, 1016)
-    # pyautogui.click(1835, 1016)
-    
-    # pyautogui.moveTo(1835, 1016)
-    # pyautogui.click(1835, 1016)
-    pydirectinput.press('space')
-    pydirectinput.press('space')
+    press('space')
+    press('space')
 
 
 def start_round(round_count: int=0) -> int: 
     '''start the round'''
-    pydirectinput.press('space')
-    # pyautogui.moveTo(1835, 1016)
-    # pyautogui.click(1835, 1016)
+    press('space')
     round_count += 1
     return round_count
 
 
 def change_auto_start():
     '''Flip the auto-start switch'''
-    # Click Option
-    pyautogui.moveTo(1601, 41)
-    pyautogui.click(1601, 41)
+    click_design((1601, 41))
     time.sleep(.2)
-
-    # Click auto-start switch
-    pyautogui.moveTo(1322, 334)
-    pyautogui.click(1322, 334)
+    click_design((1322, 334))
     time.sleep(.2)
-
-    # Click away to reset gui
-    pyautogui.moveTo(1601, 41)
-    pyautogui.click(1601, 41)
+    click_design((1601, 41))
 # endregion
 
 # region ------ Data-Using/Data-Manipulating Methods -------
@@ -281,10 +252,12 @@ def do_action(action: Action, old_gold: int, action_cost: int) -> bool:
 
         act_name = action.action
         # Place monkey
-        keyboard.press(hotkeys[act_name.title()].lower())
-        keyboard.release(hotkeys[act_name.title()].lower())
-        pyautogui.moveTo(action.position)
-        pyautogui.click(action.position) 
+        key = hotkeys[act_name.title()]
+        if not key:
+            print(f'{act_name} has no default hotkey. Bind it in BTD6 settings.')
+            return False
+        press(key)
+        click_design(action.position) 
 
         return True
 
@@ -299,16 +272,14 @@ def do_action(action: Action, old_gold: int, action_cost: int) -> bool:
             return False
 
         # Click Monkey
-        pyautogui.moveTo(monkey.position)
-        pyautogui.click(monkey.position)
+        click_design(monkey.position)
         time.sleep(.1)
 
         # Upgrade monkey
-        pydirectinput.press(hotkeys[action.action.title()])
+        press(hotkeys[action.action.title()])
         
         # Click away to reset gui
-        pyautogui.moveTo(1600, 1040)
-        pyautogui.click(1600, 1040)
+        click_design((1600, 1040))
 
         # Check to make sure action actually occurred an there wasn't a misread of money. 
         # (This functionality should be double checked)
@@ -337,19 +308,13 @@ def do_action(action: Action, old_gold: int, action_cost: int) -> bool:
             monkey = monkey_dict[action.name]
 
             # Click monkey
-            pyautogui.moveTo(monkey.position)
-            pyautogui.click(monkey.position)
+            click_design(monkey.position)
 
             # Change targeting from first to strong
-            pydirectinput.keyDown('ctrl')
-            pydirectinput.keyDown('tab')
-            time.sleep(.1)
-            pydirectinput.keyUp('ctrl')
-            pydirectinput.keyUp('tab')
+            press('ctrl tab')
             
             # Click away to reset gui
-            pyautogui.moveTo(1600, 1040)
-            pyautogui.click(1600, 1040)
+            click_design((1600, 1040))
 
             return True
 
@@ -359,12 +324,10 @@ def do_action(action: Action, old_gold: int, action_cost: int) -> bool:
             monkey = monkey_dict[action.name]
 
             # Click monkey
-            pyautogui.moveTo(monkey.position)
-            pyautogui.click(monkey.position)
+            click_design(monkey.position)
 
             # Change targeting from strong to first
-            keyboard.press('tab')
-            keyboard.release('tab')
+            press('tab')
 
             return True
 
@@ -377,8 +340,7 @@ def do_action(action: Action, old_gold: int, action_cost: int) -> bool:
     ####
     # Clicking spot
     if action.type == 'click':
-        pyautogui.moveTo(action.position)
-        pyautogui.click(action.position)
+        click_design(action.position)
 
         return True
 
@@ -412,10 +374,12 @@ def do_action_manual(action: Action, old_gold: int, action_cost: int, round_coun
 
         act_name = action.action
         # Place monkey
-        keyboard.press(hotkeys[act_name.title()].lower())
-        keyboard.release(hotkeys[act_name.title()].lower())
-        pyautogui.moveTo(action.position)
-        pyautogui.click(action.position) 
+        key = hotkeys[act_name.title()]
+        if not key:
+            print(f'{act_name} has no default hotkey. Bind it in BTD6 settings.')
+            return False, round_count
+        press(key)
+        click_design(action.position) 
 
         return True, round_count
 
@@ -431,16 +395,14 @@ def do_action_manual(action: Action, old_gold: int, action_cost: int, round_coun
             return False, round_count
 
         # Click Monkey
-        pyautogui.moveTo(monkey.position)
-        pyautogui.click(monkey.position)
+        click_design(monkey.position)
         time.sleep(.1)
 
         # Upgrade monkey
-        pydirectinput.press(hotkeys[action.action.title()])
+        press(hotkeys[action.action.title()])
         
         # Click away to reset gui
-        pyautogui.moveTo(1600, 1040)
-        pyautogui.click(1600, 1040)
+        click_design((1600, 1040))
 
         # Check to make sure action actually occurred an there wasn't a misread of money. This functionality needs to be double checked
         if action.cost > 4000:
@@ -466,20 +428,14 @@ def do_action_manual(action: Action, old_gold: int, action_cost: int, round_coun
             monkey = monkey_dict[action.name]
             
             # Click Monkey
-            pyautogui.moveTo(monkey.position)
-            pyautogui.click(monkey.position)
+            click_design(monkey.position)
             time.sleep(.1)
 
             # Change targeting from first to strong
-            pydirectinput.keyDown('ctrl')
-            pydirectinput.keyDown('tab')
-            time.sleep(.1)
-            pydirectinput.keyUp('ctrl')
-            pydirectinput.keyUp('tab')
+            press('ctrl tab')
             
             # Click away to reset gui
-            pyautogui.moveTo(1600, 1040)
-            pyautogui.click(1600, 1040)
+            click_design((1600, 1040))
 
             return True, round_count
 
@@ -489,12 +445,10 @@ def do_action_manual(action: Action, old_gold: int, action_cost: int, round_coun
             monkey = monkey_dict[action.name]
 
             # Click monkey
-            pyautogui.moveTo(monkey.position)
-            pyautogui.click(monkey.position)
+            click_design(monkey.position)
 
             # Change targeting from strong to first
-            keyboard.press('tab')
-            keyboard.release('tab')
+            press('tab')
 
             return True, round_count
 
@@ -566,10 +520,12 @@ def do_action_sanctuary(action: Action, old_gold: int, action_cost: int, round_c
 
         act_name = action.action
         # Place monkey
-        keyboard.press(hotkeys[act_name.title()].lower())
-        keyboard.release(hotkeys[act_name.title()].lower())
-        pyautogui.moveTo(tuple(np.array(action.position) + np.array([dx, dy])))
-        pyautogui.click(tuple(np.array(action.position) + np.array([dx, dy]))) 
+        key = hotkeys[act_name.title()]
+        if not key:
+            print(f'{act_name} has no default hotkey. Bind it in BTD6 settings.')
+            return False, round_count
+        press(key)
+        click_design(tuple(np.array(action.position) + np.array([dx, dy]))) 
 
         return True, round_count
 
@@ -585,16 +541,14 @@ def do_action_sanctuary(action: Action, old_gold: int, action_cost: int, round_c
             return False, round_count
 
         # Click Monkey
-        pyautogui.moveTo(tuple(np.array(monkey.position) + np.array([dx, dy])))
-        pyautogui.click(tuple(np.array(monkey.position) + np.array([dx, dy])))
+        click_design(tuple(np.array(monkey.position) + np.array([dx, dy])))
         time.sleep(.1)
 
         # Upgrade monkey
-        pydirectinput.press(hotkeys[action.action.title()])
+        press(hotkeys[action.action.title()])
         
         # Click away to reset gui
-        pyautogui.moveTo(1600, 1040)
-        pyautogui.click(1600, 1040)
+        click_design((1600, 1040))
 
         # Check to make sure action actually occurred an there wasn't a misread of money. This functionality needs to be double checked
         if action.cost > 4000:
@@ -620,20 +574,14 @@ def do_action_sanctuary(action: Action, old_gold: int, action_cost: int, round_c
             monkey = monkey_dict[action.name]
             
             # Click Monkey
-            pyautogui.moveTo(tuple(np.array(monkey.position) + np.array([dx, dy])))
-            pyautogui.click(tuple(np.array(monkey.position) + np.array([dx, dy])))
+            click_design(tuple(np.array(monkey.position) + np.array([dx, dy])))
             time.sleep(.1)
 
             # Change targeting from first to strong
-            pydirectinput.keyDown('ctrl')
-            pydirectinput.keyDown('tab')
-            time.sleep(.1)
-            pydirectinput.keyUp('ctrl')
-            pydirectinput.keyUp('tab')
+            press('ctrl tab')
             
             # Click away to reset gui
-            pyautogui.moveTo(1600, 1040)
-            pyautogui.click(1600, 1040)
+            click_design((1600, 1040))
 
             return True, round_count
 
@@ -643,12 +591,10 @@ def do_action_sanctuary(action: Action, old_gold: int, action_cost: int, round_c
             monkey = monkey_dict[action.name]
 
             # Click monkey
-            pyautogui.moveTo(np.array(monkey.position) + np.array([dx, dy]))
-            pyautogui.click(np.array(monkey.position) + np.array([dx, dy]))
+            click_design(tuple(np.array(monkey.position) + np.array([dx, dy])))
 
             # Change targeting from strong to first
-            keyboard.press('tab')
-            keyboard.release('tab')
+            press('tab')
 
             return True, round_count
 
@@ -763,8 +709,7 @@ def game_loop(script) -> bool:
                 if not win or not loss:
                     for _ in range(3):
                         # Click middle to reset gui
-                        pyautogui.moveTo(837, 564)
-                        pyautogui.click(837, 564)
+                        click_design((837, 564))
                         time.sleep(1.5)
                     start_round(1)
                 else:
@@ -811,8 +756,7 @@ def game_loop(script) -> bool:
             if not win or not loss:
                 for _ in range(4):
                     # Click middle to reset gui
-                    pyautogui.moveTo(837, 564)
-                    pyautogui.click(837, 564)
+                    click_design((837, 564))
                     time.sleep(1.5)
                 start_round(1)
             else:

@@ -1,14 +1,27 @@
+"""Copy the current mouse position. F8 on macOS (no Insert key on Apple keyboards)."""
+from __future__ import annotations
+
+import time
+
 import pyautogui
 import pyperclip
-import keyboard
+from pynput import keyboard
 
-print('Running copy_mouse_position.py. Press the \'insert\' key to copy mouse position.')
-print('Press ctrl + c while in the terminal window to exit.')
-while True:
-    keyboard.wait('insert')
+print("Running copy_mouse_position.py")
+print("Press F8 to copy the current mouse position. Ctrl+C in this terminal to quit.")
+
+
+def on_press(key):
+    if key != keyboard.Key.f8:
+        return
     x, y = pyautogui.position()
-    pyperclip.copy(str(x) + ', ' + str(y))   
-    print(f'insert was pressed! Copied mouse position ({str(x)}, {str(y)}) to keyboard. Press ctrl + c while in the terminal window to exit. Waiting again...')
-    
+    pyperclip.copy(f"{x}, {y}")
+    print(f"Copied mouse position ({x}, {y})")
 
-# pyautogui.displayMousePosition()
+
+with keyboard.Listener(on_press=on_press) as listener:
+    try:
+        while listener.running:
+            time.sleep(0.2)
+    except KeyboardInterrupt:
+        listener.stop()

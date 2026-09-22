@@ -35,7 +35,7 @@ infernal_script = [
     Action(target, name = 'Psi', action='Strong'), # Psi Strong
     Action(upgrade, name='boom1', action=bottom), # 032 
 
-    Action(place, name='heli1', action='heli', position=(102, 571), cost=1070), # Heli
+    Action(place, name='heli1', action='heli', position=(102, 571)), # Heli
     Action(upgrade, name='heli1', action=top), # 100
     Action(upgrade, name='heli1', action=top), # 200
     Action(upgrade, name='heli1', action=middle), # 210

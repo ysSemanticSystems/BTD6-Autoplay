@@ -1,62 +1,73 @@
-#!/usr/bin/python3 
+#!/usr/bin/python3
 #
-#
-# Desc: Cycles through the home screen and menus to find the most rewarding level and loads that level. Calls 
-#       autoplayV2.py to play through that level and then repeats this whole process.
-#
-# TODO: fix the click() and position methods to work on other people's screens
+# Desc: Cycles menus, finds the bonus-reward expert map, and plays it.
+# Expert grid updated for the 14-map layout as of September 2026.
 #
 
-import pyautogui
-import numpy as np
-import cv2
-from PIL import Image
+from __future__ import annotations
+
+import sys
 import time
+from pathlib import Path
+
+from PIL import ImageGrab
+
+AUTOPLAY_DIR = Path(__file__).resolve().parent
+if str(AUTOPLAY_DIR) not in sys.path:
+    sys.path.insert(0, str(AUTOPLAY_DIR))
 
 import autoplayV2
+from config import REFERENCE_DIR, USE_LMSTUDIO_VISION
+from input_backend import click as click_logical, click_design
+from lmstudio_client import classify_ui, is_available as lmstudio_available
 
 print('-----------')
 
 current_map = ''
-bonus_rewards_image = 'reference_images/oct_bonus_rewards.png'
+bonus_rewards_image = str(REFERENCE_DIR / 'oct_bonus_rewards.png')
+collection_event_image = str(REFERENCE_DIR / 'oct_collection_event.png')
+
+# 2026 expert pages are 2 rows x 3 cols. Scripts exist only for the original 10.
+# Maps without a script are skipped so the bot does not start an unwinnable game.
+EXPERT_PAGES = [
+    [
+        ['tricky_tracks_script', 'glacial_trail_script', 'dark_dungeons_script'],
+        ['sanctuary_script', 'ravine_script', 'flooded_valley_script'],
+    ],
+    [
+        ['infernal_script', 'bloody_puddles_script', 'workshop_script'],
+        ['quad_script', 'dark_castle_script', 'muddy_puddles_script'],
+    ],
+    [
+        ['ouch_script', 'blons_script', None],
+        [None, None, None],
+    ],
+]
+SCRIPTED_MAPS = {
+    'sanctuary_script',
+    'ravine_script',
+    'flooded_valley_script',
+    'infernal_script',
+    'bloody_puddles_script',
+    'workshop_script',
+    'quad_script',
+    'dark_castle_script',
+    'muddy_puddles_script',
+    'ouch_script',
+}
+FALLBACK_MAP = 'dark_castle_script'
 
 def find_image(given_image: str):
     '''
     See if bonus rewards symbol is on the screen.
     :returns: True if symbol found, false otherwise.
-              Location of best match.
+              Logical location of best match.
     '''
-    found = False # found symbol
-    location = [0, 0]
-
-    method = cv2.TM_SQDIFF_NORMED
-
-    # Read images 
-    image = pyautogui.screenshot()
-    # make image compatible with cv2
-    large_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-    small_image = cv2.imread(given_image)
-
-    result = cv2.matchTemplate(small_image, large_image, method)
-
-    # We want the minimum squared difference
-    maxLoc, minLoc, comparedLoc, _ = cv2.minMaxLoc(result)
-
-    # Location of best match
-    MPx,MPy = comparedLoc
-    location = [MPx, MPy]
-
-    # img = cv2.cvtColor(large_image, cv2.COLOR_BGR2RGB)
-    # im_pil = Image.fromarray(img)
-    # im_pil.show()
-
-    if maxLoc < .05:
+    found, location, score = autoplayV2.find_image_location(given_image)
+    if found:
         print('Found it')
-        found = True
-        return found, location
-    else:
-        # print(f'maxLoc: {maxLoc}')
-        return found, location
+        return True, location
+    return False, location
 
 
 def find_bonus_rewards_symbol():   
@@ -77,169 +88,129 @@ def find_bonus_rewards_symbol():
     click_expert()
     time.sleep(1)
 
-    # Check for symbol on expert page 1
-    found_symbol, location = find_image(bonus_rewards_image)
-    if found_symbol:
-        expert_map = get_expert_map(location, page_num)
-        # load up a game
-        click(location)
-        time.sleep(.7)
-        click_hard()
-        time.sleep(.7)
-        click_standard()
-        return expert_map, True
+    for page_num in range(1, len(EXPERT_PAGES) + 1):
+        found_symbol, location = find_image(bonus_rewards_image)
+        if found_symbol:
+            expert_map = get_expert_map(location, page_num)
+            if expert_map is None:
+                print('Bonus map has no script; falling back to Dark Castle')
+                return load_named_map(FALLBACK_MAP), True
+            click(location)
+            time.sleep(.7)
+            click_hard()
+            time.sleep(.7)
+            click_standard()
+            return expert_map, True
+        if page_num < len(EXPERT_PAGES):
+            click_page_right()
+            time.sleep(1)
 
-    # Check for symbol on expert page 2
-    click_page_right()
+    if USE_LMSTUDIO_VISION and lmstudio_available():
+        state = classify_ui(ImageGrab.grab())
+        print(f'LM Studio UI state: {state}')
+        if state.get('bonus_rewards') or str(state.get('screen', '')).lower() == 'map_select':
+            print('Template miss; using Dark Castle so farming still continues')
+            return load_named_map(FALLBACK_MAP), True
+
+    print('Reward symbol not found')
+    return 'None', False
+
+
+def load_named_map(script_name: str):
+    """Open Hard Standard on Dark Castle when the bonus map has no script."""
+    click_beginner()
+    time.sleep(.3)
+    click_expert()
     time.sleep(1)
-    page_num += 1
-    found_symbol, location = find_image(bonus_rewards_image)
-    if found_symbol:
-        expert_map = get_expert_map(location, page_num)
-        # load up a game
-        click(location)
-        time.sleep(.7)
-        click_hard()
-        time.sleep(.7)
-        click_standard()
-        return expert_map, True
-    else:
-        print('Reward symbol not found')
-        return 'None', False
+    click_page_right()
+    time.sleep(.8)
+    # Dark Castle is page 2, bottom-middle on the 2026 grid.
+    click_design((960, 720))
+    time.sleep(.7)
+    click_hard()
+    time.sleep(.7)
+    click_standard()
+    return get_script(script_name)
+
+
+def get_script(script_name: str):
+    global current_map
+    current_map = script_name
+    autoplayV2.map_is_sanctuary = script_name == 'sanctuary_script'
+    autoplayV2.manual_rounds = script_name == 'sanctuary_script'
+    module = __import__('action_scripts.collection_scripts.' + script_name, fromlist=[script_name])
+    return getattr(module, script_name)
 
 
 def get_expert_map(position, page_num):
     '''
     Get the expert map from the position of the bonus rewards symbol.
 
-    :returns: list of actions (from action_scripts)
+    :returns: list of actions, or None if that map has no script
     '''
-    global current_map
-    # Expert Map names
-    page_one = [['sanctuary_script', 'ravine_script', 'flooded_valley_script'],
-                ['infernal_script', 'bloody_puddles_script', 'workshop_script']]
-    page_two = [['quad_script', 'dark_castle_script', 'muddy_puddles_script'], 
-                ['ouch_script']]
-    # dimensions of screen
     height = autoplayV2.screen_height
     width = autoplayV2.screen_width
 
-    # indicies of map names
-    xindex = None
-    yindex = None
-
-    if position[1] < height/3:
-        yindex = 0 # tis in upper portion of screen
+    yindex = 0 if position[1] < height / 3 else 1
+    if position[0] < width / 2.5:
+        xindex = 0
+    elif width / 2.5 <= position[0] <= width - width / 2.5:
+        xindex = 1
     else:
-        yindex = 1 # symbol is in lower portion of screen
+        xindex = 2
 
-    if position[0] < width/2.5:
-        xindex = 0 # left
-    elif width/2.5 <= position[0] <= width-width/2.5:
-        xindex = 1 # middle
-    else:
-        xindex = 2 # right
+    try:
+        expert_map = EXPERT_PAGES[page_num - 1][yindex][xindex]
+    except (IndexError, TypeError):
+        print(f'Could not resolve expert map page={page_num} pos={position}')
+        return None
 
-    if page_num == 1:
-        expert_map = page_one[yindex][xindex]
-    elif page_num == 2:
-        expert_map = page_two[yindex][xindex]
-    else:
-        print('invalid page number in get_expert_map()')
-        exit()
     print(expert_map)
-
-    # Update current map (used for logging)
-    current_map = expert_map
-
-    # Update game_loop code to include sanctuary script
-    if expert_map == 'sanctuary_script':
-        autoplayV2.map_is_sanctuary = True
-        autoplayV2.manual_rounds = True
-    else:
-        autoplayV2.map_is_sanctuary = False
-        autoplayV2.manual_rounds = False
-
-    # Convert expert_map string into variable and access the correct script
-    expert_map_module = __import__('action_scripts.collection_scripts.' + expert_map, fromlist=[expert_map])
-    action_list = getattr(expert_map_module, expert_map)
-
-    return action_list
+    if expert_map is None or expert_map not in SCRIPTED_MAPS:
+        return None
+    return get_script(expert_map)
 
 
 # region ------------- Clicking-Only Methods -----------------
 def click(position):
-    '''Click the desired position'''
-    pyautogui.moveTo(position)
-    pyautogui.click(position)
+    '''Click a logical-screen position (already scaled, e.g. from template match).'''
+    click_logical(position)
 
-# region   Very simple click-one-position functions
 def click_play():
-    '''Click the play button'''
-    pyautogui.moveTo(835, 930)
-    pyautogui.click(835, 930)
+    click_design((835, 930))
 
 def click_beginner():
-    '''Click the beginner button'''
-    pyautogui.moveTo(582, 981)
-    pyautogui.click(582, 981)
+    click_design((582, 981))
 
 def click_expert():
-    '''Click the Expert button'''
-    pyautogui.moveTo(1338, 976)
-    pyautogui.click(1338, 976)
+    click_design((1338, 976))
 
 def click_page_right():
-    '''Click the right arrow on the map selection screen'''
-    pyautogui.moveTo(1642, 432)
-    pyautogui.click(1642, 432)
+    click_design((1642, 432))
 
 def click_hard():
-    '''Click the hard game mode'''
-    pyautogui.moveTo(1296, 418)
-    pyautogui.click(1296, 418)
+    click_design((1296, 418))
 
 def click_standard():
-    '''Click the standard game mode'''
-    pyautogui.moveTo(632, 587)
-    pyautogui.click(632, 587)
+    click_design((632, 587))
 
 def click_home():
-    '''Click the home button after victory (or loss in chimps mode)'''
-    pyautogui.moveTo(702, 859)
-    pyautogui.click(702, 859)
+    click_design((702, 859))
 
 def click_home_loss():
-    '''Click the home button after loss (continue button exists)'''
-    pyautogui.moveTo(575, 823)
-    pyautogui.click(575, 823)
+    click_design((575, 823))
 
 def click_victory_next():
-    '''Click the next button after victory'''
-    pyautogui.moveTo(939, 907)
-    pyautogui.click(939, 907)
-
-# endregion
+    click_design((939, 907))
 
 def collect_event():
     '''Collect event rewards after beating a level'''
-    # Click 'collect'
-    pyautogui.moveTo(962, 683)
-    pyautogui.click(962, 683)
-    
-    # Wait for animation
+    click_design((962, 683))
     time.sleep(3)
-
-    # Rapidly click across the screen to collect rewards
     for i in range(30):
-        x = 553 + i*30
-        pyautogui.moveTo(x, 544)
-        pyautogui.click(x, 544)
+        click_design((553 + i * 30, 544))
         time.sleep(.1)
-
-    # Exit to home screen
-    pyautogui.moveTo(81, 55)
-    pyautogui.click(81, 55)
+    click_design((81, 55))
 
 # endregion
 
@@ -277,7 +248,10 @@ def main():
             
         time.sleep(7)
         # Collect event rewards if needed
-        found_collection, _ = find_image('reference_images/oct_collection_event.png')
+        found_collection, _ = find_image(collection_event_image)
+        if not found_collection and USE_LMSTUDIO_VISION and lmstudio_available():
+            state = classify_ui(ImageGrab.grab())
+            found_collection = str(state.get('screen', '')).lower() == 'collection'
         if found_collection:
             collect_event() 
         
